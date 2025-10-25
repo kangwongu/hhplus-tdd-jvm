@@ -27,7 +27,10 @@ class PointService(
 
     /**
      * 유저의 포인트를 충전하고, 히스토리에 기록
+     * - synchronized 키워드를 사용하여 동시성 문제 방지
+     *   - DB 사용 x, 단일 서버이기 때문에 synchronized 로 처리, 같은 이유로 Redis 사용한 분산락 사용 X
      */
+    @Synchronized
     fun chargePoint(userId: Long, amount: Long): UserPoint {
         val userPoint = readUserPoint(userId) // 포인트 존재 여부 확인
         val toChargeAmount = userPoint.point + amount   // 충전 후 포인트 계산
@@ -47,7 +50,10 @@ class PointService(
     /**
      * 유저의 포인트를 사용하고, 히스토리에 기록
      * - 보유하고 있는 포인트가 사용할 포인트보다 적을 경우 예외 처리
+     * - synchronized 키워드를 사용하여 동시성 문제 방지
+     *   - DB 사용 x, 단일 서버이기 때문에 synchronized 로 처리, 같은 이유로 Redis 사용한 분산락 사용 X
      */
+    @Synchronized
     fun usePoint(userId: Long, amount: Long): UserPoint {
         val userPoint = readUserPoint(userId) // 포인트 존재 여부 확인
 
