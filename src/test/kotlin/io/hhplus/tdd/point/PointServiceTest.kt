@@ -110,13 +110,24 @@ class PointServiceTest {
         val userId = 1L
         val toChargeAmount = 1000L
         val updateMillis = System.currentTimeMillis()
+        // 포인트 초기 세팅
+        val initialMillis = System.currentTimeMillis()
+        val initialUserPoint = UserPoint(
+            id = userId,
+            point = 200L,
+            updateMillis = initialMillis,
+        )
+        // amount 만큼 충전 된 포인트 세팅
+        val afterChargeUserPoint = initialUserPoint.point + toChargeAmount
 
         // 포인트 충전 시, stub 데이터를 반환
-        whenever(userPointTable.insertOrUpdate(userId, toChargeAmount))
+        whenever(userPointTable.selectById(userId))
+            .thenReturn(initialUserPoint)
+        whenever(userPointTable.insertOrUpdate(userId, afterChargeUserPoint))
             .thenReturn(
                 UserPoint(
                     id = userId,
-                    point = toChargeAmount,
+                    point = afterChargeUserPoint,
                     updateMillis = updateMillis,
                 )
             )
@@ -126,14 +137,14 @@ class PointServiceTest {
 
         // then
         assertThat(result.id).isEqualTo(userId)
-        assertThat(result.point).isEqualTo(toChargeAmount)
+        assertThat(result.point).isEqualTo(afterChargeUserPoint)
         assertThat(result.updateMillis).isEqualTo(updateMillis)
 
         // mock, 포인트를 충전하는 로직과 히스토리에 기록하는 로직이 호출되었는지 검증
-        verify(userPointTable).insertOrUpdate(userId, toChargeAmount)
+        verify(userPointTable).insertOrUpdate(userId, afterChargeUserPoint)
         verify(pointHistoryTable).insert(
             id = userId,
-            amount = toChargeAmount,
+            amount = afterChargeUserPoint,
             transactionType = TransactionType.CHARGE,
             updateMillis = updateMillis,
         )

@@ -29,7 +29,10 @@ class PointService(
      * 유저의 포인트를 충전하고, 히스토리에 기록
      */
     fun chargePoint(userId: Long, amount: Long): UserPoint {
-        val chargedUserPoint = userPointTable.insertOrUpdate(userId, amount)
+        val userPoint = readUserPoint(userId) // 포인트 존재 여부 확인
+        val toChargeAmount = userPoint.point + amount   // 충전 후 포인트 계산
+
+        val chargedUserPoint = userPointTable.insertOrUpdate(userId, toChargeAmount)
 
         pointHistoryTable.insert(
             id = chargedUserPoint.id,
